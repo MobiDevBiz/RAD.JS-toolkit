@@ -7,13 +7,10 @@
     <meta name="format-detection" content="telephone=no">
 
     <title>List View</title>
-    <script type="text/javascript" src="../../utils/utils.js"></script>
-    <script type="text/javascript" src="../../objectpool/objectpool.js"></script>
     <script type="text/javascript" src="../../scrollbar/scrollbar.js"></script>
-    <script type="text/javascript" src="../listview.js"></script>
-    <script type="text/javascript" src="../../gestureadapter/gestureadapter.js"></script>
-    <script type="text/javascript" src="../../animator/animator.js"></script>
-    <script type="text/javascript" src="../../scrollview/scrollview.js"></script>
+    <script type="text/javascript" src="../bin/listview-combined.min.js"></script>
+
+    <title>Dynamic</title>
     <style type="text/css">
         html, body, .wrapper {
             margin: 0;
@@ -22,34 +19,24 @@
             background-color: #999999;
         }
 
-        .wrapper{
+        .wrapper {
+            position: relative;
             max-width: 960px;
             margin: 0 auto;
-            background-color: #ffffff;
+            background-color: #fff;
         }
 
-        .v-container {
-            height: 80%;
-        }
+        .list-view {
+            position: absolute;
+            bottom: 0;
+            top: 50px;
+            left: 0;
+            width: 100%;
 
-        .v-listview {
-            margin: 0;
-            height: 100%;
-            width: 50%;
-            float: left;
-        }
-
-        .v-listview.first{
             background-color: #000;
         }
 
-        .h-listview {
-            margin: 0;
-            height: 20%;
-            width: 100%;
-        }
-
-        .item, .item-too {
+        .item {
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
             box-sizing: border-box;
@@ -57,39 +44,7 @@
             width: 100%;
         }
 
-        .item-too {
-            background-color: #000;
-        }
-
-        .item-horiz {
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-
-            width: 80%;
-            height: 100%;
-        }
-
-        .img {
-            float: left;
-            width: 80px;
-            height: 80px;
-            margin: 5px;
-        }
-
-        .v-item.active{
-            background-color: #f8ff9a;
-        }
-
-        .h-item {
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            box-sizing: border-box;
-
-            height: 100%;
-        }
-
-        .v-text {
+        .text {
             padding: 10px;
 
             height: 100%;
@@ -113,24 +68,19 @@
             user-select: none;
         }
 
-        .h-item .v-text {
-            border-bottom: none;
-            color: #F6FF0A;
-        }
-
-        .v-text:after {
+        .text:after {
             content: "";
             clear: both;
             display: block;
         }
 
-        .v-position {
+        .position {
             position: absolute;
             padding: 5px;
             bottom: 0;
             right: 0;
 
-            color: #000;
+            color: #fff;
 
             -webkit-touch-callout: none;
             -webkit-user-select: none;
@@ -140,32 +90,7 @@
             user-select: none;
         }
 
-        .item-too .v-position {
-            color: #fff;
-        }
-
-        .item-select{
-            color: #F6FF0A;
-            background-color: #464;
-        }
-
-        pre {
-            display: none;
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            padding: 5px;
-
-            font-weight: bold;
-
-            text-transform: uppercase;
-            color: #ff0a45;
-
-            z-index: 999;
-        }
-
-        .scrollbar{
-
+        .scrollbar {
             right: 0;
             top: 0;
             width: 5px;
@@ -184,44 +109,45 @@
             background-color: #bcbfbf;
         }
 
+        .img {
+            float: left;
+            width: 80px;
+            height: 80px;
+            margin: 5px;
+        }
+
+        .interface{
+            padding: 15px;
+        }
+
+        .range {
+            width: 100%;
+        }
+
+        .button {
+            float: right;
+        }
+
+        .count {
+            float: left;
+        }
+
     </style>
+
 </head>
 <body>
 <div class="wrapper">
-    <div class="h-listview" style="width: 100%; height: 20%;"><pre>
-500 items
-{
-    direction: 'horizontal',
-    tweaking: true,
-    fling: false
-}</pre>
+    <div class="interface">
+        <div class="count">0</div>
+        <button class="button" onclick="setupListCount()">Apply</button>
+        <div style="margin: 0 75px; position: relative;"><input class="range" type="range" min="0" max="5000" value="0" step="1" oninput="showVal(this.value)"
+               onchange="showVal(this.value)"/></div>
     </div>
-    <div class="v-container">
-        <div class="v-listview first">
-        <pre>
-5000 items
-{
-    direction: 'vertical',
-    tweaking: false,
-    fling: true
-}</pre>
-        </div>
-        <div class="v-listview second">
-        <pre>
-100 items
-{
-    direction: 'vertical',
-    tweaking: true,
-    fling: true
-}</pre>
-        </div>
-    </div>
+    <div class="list-view"></div>
 </div>
 <script type="text/javascript">
-
-    var listContainer, listView, gestureAdapter;
-
     // =================================== first list ========================================
+    var listContainer, listView, gestureAdapter, adapter;
     function ListViewAdapter(count) {
         var adapter = this;
 
@@ -237,17 +163,27 @@
                 convertElement.className = 'v-item';
 
                 //setup content
-                convertElement.innerHTML = '<div class="v-text"><span class="v-position">' + position + '</span>Lorem ipsum dolor sit amet,' +
+                convertElement.innerHTML = '<div class="text"><img class="img" src="http://lorempixel.com/80/80/?' + +(window.performance.now() + Math.random()) + '" alt="img"/>' +
+                        '<span class="position">' + position + '</span>Lorem ipsum dolor sit amet,' +
                         ' consectetur adipiscing elit. In libero lacus, feugiat et elementum euismod, tincidunt nec leo.' +
                         ' Nunc est mauris, mollis id porta ac, egestas eu nulla. Donec id ante vel purus eleifend vestibulum.' +
                         ' Maecenas id lacinia lacus.</div>';
 
                 //setup handlers
-                handler.pos = convertElement.querySelector('.v-position');
-                handler.style = convertElement.querySelector('.v-text').style;
+                handler.pos = convertElement.querySelector('.position');
+                handler.img = convertElement.querySelector('.img');
+                handler.style = convertElement.style;
+
+                handler.img.style.opacity = 0;
+                handler.img.onload = function () {
+                    this.style.opacity = 1;
+                };
+
             } else {
                 // convert already existing item
                 handler.pos.textContent = position;
+                handler.img.style.opacity = 0;
+                handler.img.src = 'http://lorempixel.com/80/80/?' + (window.performance.now() + Math.random());
             }
 
             if (position % 2 > 0) {
@@ -262,131 +198,37 @@
         return adapter;
     }
 
-    listContainer = document.querySelector('.v-listview.first');
-    listView = new ListView(listContainer, new ListViewAdapter(5000), {
+    listContainer = document.querySelector('.list-view');
+    adapter = new ListViewAdapter(0);
+    listView = new ScrollBar(new ListView(listContainer, adapter, {
         direction: 'vertical',
-        tweaking: false,
-        fling: true,
-        itemClass: 'item-too'
-    });
-    gestureAdapter = new GestureAdapter(listContainer, listView);
-    listContainer.listView = listView;
-    listContainer.gestureAdapter = gestureAdapter;
-
-    // =================================== second list ========================================
-    function LViewAdapter(count) {
-        var adapter = this;
-
-        adapter.getElementsCount = function () {
-            return count;
-        };
-
-        adapter.getElement = function (position, convertElement, handler) {
-            //create new element
-            if (!convertElement) {
-
-                convertElement = document.createElement('div');
-                convertElement.className = 'v-item';
-
-                //setup content
-                convertElement.innerHTML = '<div class="v-text"><img class="img" src="http://lorempixel.com/80/80/?' + +(window.performance.now() + Math.random()) + '" alt="img"/>' +
-                        '<span class="v-position">' + position + '</span>Lorem ipsum dolor sit amet,' +
-                        ' consectetur adipiscing elit. In libero lacus, feugiat et elementum euismod, tincidunt nec leo.' +
-                        ' Nunc est mauris, mollis id porta ac, egestas eu nulla. Donec id ante vel purus eleifend vestibulum.' +
-                        ' Maecenas id lacinia lacus.</div>';
-
-                //setup handlers
-                handler.pos = convertElement.querySelector('.v-position');
-                handler.img = convertElement.querySelector('.img');
-
-                handler.img.style.opacity = 0;
-                handler.img.onload = function () {
-                    this.style.opacity = 1;
-                };
-
-            } else {
-                // convert already existing item
-                handler.pos.textContent = position;
-                handler.img.style.opacity = 0;
-                handler.img.src = 'http://lorempixel.com/80/80/?' + (window.performance.now() + Math.random());
-            }
-
-            return convertElement;
-        };
-
-        return adapter;
-    }
-
-    listContainer = document.querySelector('.v-listview.second');
-    listView = new ScrollBar(new ListView(listContainer, new LViewAdapter(50), {
         bounds: true,
-        direction: 'vertical',
-        tweaking: true,
-        fling: true,
-        itemClass: 'item',
-        selectionClass: 'active'
+        itemClass: 'item'
     }), 'scrollbar');
     gestureAdapter = new GestureAdapter(listContainer, listView);
     listContainer.listView = listView;
     listContainer.gestureAdapter = gestureAdapter;
 
-//    listView.setOnTapListener(function(position, element, event){
-//        //TODO if you need
-//    });
-//
-//    // =================================== horizontal list ========================================
-    function HListViewAdapter(count) {
-        var adapter = this;
+    /////////////////////////////////////////////////////////////////////////////////////////
 
-        adapter.getElementsCount = function () {
-            return count;
-        };
 
-        adapter.getElement = function (position, convertElement, handler) {
-            var background = 'url(http://lorempixel.com/' + Math.ceil(handler.width)
-                    + '/' + Math.ceil(handler.height) + '/?' + (window.performance.now() + Math.random()) + ') 0 0 no-repeat';
-
-            //create new element
-            if (!convertElement) {
-
-                convertElement = document.createElement('div');
-                convertElement.className = 'h-item';
-
-                convertElement.style.background = background;
-
-                //setup content
-                convertElement.innerHTML = '<div class="v-text"><span class="v-position">'
-                        + position + '</span>Lorem ipsum dolor sit amet,' +
-                        ' consectetur adipiscing elit. In libero lacus, feugiat et elementum euismod, tincidunt nec leo.' +
-                        ' Nunc est mauris, mollis id porta ac, egestas eu nulla. Donec id ante vel purus eleifend vestibulum.' +
-                        ' Maecenas id lacinia lacus.</div>';
-
-                //setup handlers
-                handler.pos = convertElement.querySelector('.v-position');
-                handler.style = convertElement.style;
-            } else {
-                // convert already existing item
-                handler.pos.textContent = position;
-            }
-            handler.style.background = background;
-
-            return convertElement;
-        };
-
-        return adapter;
+    var count = document.querySelector('.count'), value = 0;
+    function showVal(val) {
+        value = val;
+        count.innerHTML = val;
     }
 
-    listContainer = document.querySelector('.h-listview');
-    listView = new ListView(listContainer, new HListViewAdapter(500), {
-        direction: 'horizontal',
-        tweaking: true,
-        fling: false,
-        itemClass: 'item-horiz'
-    });
-    gestureAdapter = new GestureAdapter(listContainer, listView);
-    listContainer.listView = listView;
-    listContainer.gestureAdapter = gestureAdapter;
+    function setupListCount() {
+        var a = value;
+        adapter.getElementsCount = function () {
+            return a;
+        };
+
+        listView.refresh();
+    }
+
 
 </script>
+
 </body>
 </html>

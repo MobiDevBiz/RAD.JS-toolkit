@@ -26,15 +26,13 @@ function ListView(element, adapter, o) {
         mInvisibleCollectorTimeout;
 
     function calculateItemSize() {
-        var item, counts = adapter.getElementsCount(), box, wrapper;
+        var item, counts = adapter.getElementsCount(), box, wrapper, helper = new CreateHelper();
 
         if (counts === 0)
             return 0;
 
-        item = adapter.getElement(0, null, {});
-        wrapper = document.createElement('div');
-        wrapper.style.position = 'absolute';
-        wrapper.className = mWrapperClass;
+        item = adapter.getElement(helper.index, helper.item, helper.handler);
+        wrapper = helper.wrapper;
         wrapper.appendChild(item);
         mContainer.appendChild(wrapper);
 
@@ -59,7 +57,7 @@ function ListView(element, adapter, o) {
         this.wrapper = element;
         this.item = null;
         this.position = null;
-        this.index = null;
+        this.index = 0;
         this.timeout = null;
         this.handler = {
             width: 0,

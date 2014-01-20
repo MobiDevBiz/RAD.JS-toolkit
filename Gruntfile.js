@@ -25,18 +25,27 @@ module.exports = function(grunt) {
 					'gestureadapter/gestureadapter.js',
 					'scrollview/scrollview.js'],
 				dest: 'scrollview/bin/scrollview-combined.min.js'
-			}
-		},
+			},
+            gestureadapter: {
+                src: ['objectpool/objectpool.js',
+                    'gestureadapter/gestureadapter.js'],
+                dest: 'gestureadapter/bin/gestureadapter-combined.min.js'
+            }
+        },
 
 		uglify: {
 			animator: {
 				src: ['animator/animator.js'],
 				dest: 'animator/bin/animator.min.js'
 			},
-			gestureadapter: {
-				src: ['gestureadapter/gestureadapter.js'],
-				dest: 'gestureadapter/bin/gestureadapter.min.js'
-			},
+            gestureadapter: {
+                src: ['gestureadapter/gestureadapter.js'],
+                dest: 'gestureadapter/bin/gestureadapter.min.js'
+            },
+            gestureadaptercombined: {
+                src: ['gestureadapter/bin/gestureadapter-combined.min.js'],
+                dest: 'gestureadapter/bin/gestureadapter-combined.min.js'
+            },
 			listview: {
 				src: ['listview/listview.js'],
 				dest: 'listview/bin/listview.min.js'
@@ -68,7 +77,7 @@ module.exports = function(grunt) {
 				src: ['animator/bin/animator.min.js']
 			},
 			gestureadapter: {
-				src: ['gestureadapter/bin/gestureadapter.min.js']
+				src: ['gestureadapter/bin/gestureadapter.min.js', 'gestureadapter/bin/gestureadapter-combined.min.js']
 			},
 			listview: {
 				src: ['listview/bin/listview.min.js', 'listview/bin/listview-combined.min.js']
@@ -87,7 +96,7 @@ module.exports = function(grunt) {
 
 
 	grunt.registerTask('build-animator', ['clean:animator', 'uglify:animator']);
-	grunt.registerTask('build-gestureadapter', ['clean:gestureadapter', 'uglify:gestureadapter']);
+	grunt.registerTask('build-gestureadapter', ['clean:gestureadapter', 'concat:gestureadapter', 'uglify:gestureadapter']);
 	grunt.registerTask('build-listview', ['clean:listview', 'uglify:listview', 'concat:listview', 'uglify:listviewcombined']);
 	grunt.registerTask('build-objectpool', ['clean:objectpool', 'uglify:objectpool']);
 	grunt.registerTask('build-scrollview', ['clean:scrollview', 'uglify:scrollview', 'concat:scrollview', 'uglify:scrollviewcombined']);

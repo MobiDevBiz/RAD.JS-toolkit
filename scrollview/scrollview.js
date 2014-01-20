@@ -67,7 +67,7 @@ function ScrollView(element, o) {
         mAnimator.stop();
 
         mView._calculateMaxScroll();
-        mAnimator.setBounds(-mView._MaxScroll, 0, mView._ParentSize / 2.5);
+        mAnimator.setBounds(Math.min(0, -mView._MaxScroll), 0, mView._ParentSize / 2.5);
         if (mScrollingWrapper[mParentProp]) {
             mAnimator.tweakIfNeeded(mView.scrollPosition, mView.setPosition);
         } else {

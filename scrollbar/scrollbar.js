@@ -32,6 +32,7 @@ function ScrollBar(wrappable, className) {
     mTranslateArray[2] = "px, 0) scale(1)";
 
     mBar.style.position = "absolute";
+    mBar.style.marginRight = "3px";
     mBar.className = className;
     mContainer.appendChild(mBar);
 
