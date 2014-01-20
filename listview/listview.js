@@ -233,19 +233,31 @@ function ListView(element, adapter, o) {
             itemsCount = adapter.getElementsCount();
 
         // refresh mLastAdapterIndex, mFirstAdapterIndex and mView.scrollPosition
-        mLastAdapterIndex = Math.min(itemsCount, mLastAdapterIndex);
-        if (mLastAdapterIndex <= mFirstAdapterIndex) {
-            mFirstAdapterIndex = mLastAdapterIndex - 1;
-            mView.scrollPosition = -Math.max(0, mFirstAdapterIndex) * newItemSize;
-        } else if ((tmpWidth !== mItemWidth) || (tmpHeight !== mItemHeight)) {
-            mView.scrollPosition = -(mFirstAdapterIndex + 1) * newItemSize;
-        }
+        if ((mFirstAdapterIndex > itemsCount - 1) || (mFirstAdapterIndex < 0)) {
+            if ((itemsCount > 0) && (mFirstAdapterIndex < 0)) {
+                mFirstAdapterIndex = - 1;
+            } else {
+                mFirstAdapterIndex = itemsCount - 1;
+            }
+            mLastAdapterIndex = mFirstAdapterIndex + 1;
 
-        mLastAdapterIndex = Math.max(mFirstAdapterIndex + mVisibleHelpers.length, 0);
+            //remove invisible items
+            for (i = mVisibleHelpers.length - 1; i >= 0; i--) {
+                helper = mVisibleHelpers[i];
+                if (helper.index < mFirstAdapterIndex || helper.index >= mLastAdapterIndex) {
+                    helper.timeout = setInvisible(helper);
+                    mInvisibleHelpers.push(removeVisibleHelper(i));
+                }
+            }
+
+            mView.scrollPosition = -Math.max(0, mFirstAdapterIndex) * newItemSize;
+        }
 
         // reflow existing items if new size !== old item size
         if ((tmpWidth !== mItemWidth) || (tmpHeight !== mItemHeight)) {
             var position, wrapper;
+
+            mView.scrollPosition = -(mFirstAdapterIndex + 1) * newItemSize;
 
             // refresh new items size
             mItemSize = newItemSize;
