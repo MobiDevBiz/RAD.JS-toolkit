@@ -1,0 +1,16 @@
+{
+  "name": "RAD.JS-toolkit",
+  "description": "Rapid Application Development javascript (RAD.js) Toolkit",
+  "devDependencies": {
+    "grunt": "~0.4.2",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-concat": "~0.3.0",
+    "grunt-contrib-uglify": "~0.2.7",
+    "grunt-contrib-cssmin": "~0.7.0",
+    "grunt-timer": "~0.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mobidevpublisher/RAD.JS-toolkit"
+  }
+}
