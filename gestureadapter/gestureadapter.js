@@ -86,7 +86,7 @@ GestureAdapter.prototype = (function () {
                 return function (e, cntx) {
                     var touchEvent;
 
-                    if (e.type !== STRINGS.touchend) {
+                    if (e.type === STRINGS.touchstart) {
                         touchEvent = e.touches[0];
                     } else {
                         touchEvent = e.changedTouches[0];
@@ -309,14 +309,14 @@ GestureAdapter.prototype = (function () {
                     onTouchStart(event, this);
                     break;
                 case STRINGS.touchend:
+                case STRINGS.touchleave:
+                case STRINGS.touchcancel:
                 case STRINGS.mouseup:
                     onTouchUp(event, this);
                     break;
                 case STRINGS.mouseover:
                     onMouseOver(event, this);
                     break;
-                case STRINGS.touchleave:
-                case STRINGS.touchcancel:
                 case STRINGS.mouseout:
                     onMouseOut(event, this);
                     break;

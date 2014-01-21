@@ -200,7 +200,7 @@ Animator.prototype = (function () {
     // ====================================================================================================
 
     proto.animate = function (startPosition, endPosition, duration, callback, easing) {
-        var startTimestamp, firstIteration = true, tmpVariable, tmpTime, self = this, easingFunction;
+        var startTimestamp, firstIteration = true, tmpVariable, tmpTime, self = this, easingFunction, lastIteraction = false;
 
         /* Prevent scrolling to the Y point if already there */
         if (startPosition === endPosition) {
@@ -230,6 +230,7 @@ Animator.prototype = (function () {
 
             // stop animation if time ends
             if (tmpTime >= 1) {
+                lastIteraction = true;
                 self.isTweaking = false;
                 self.isAnimating = false;
                 self._currentPosition = Math.round(self._currentPosition);
@@ -260,7 +261,7 @@ Animator.prototype = (function () {
             }
 
             // setup new position
-            callback(self._currentPosition);
+            callback(self._currentPosition, lastIteraction);
         }
 
         window.requestAnimationFrame(animationStep, null);
@@ -321,7 +322,7 @@ Animator.prototype = (function () {
 
             if (typeof this._callback === "function") {
                 this._currentPosition = Math.round(this._currentPosition);
-                this._callback(this._currentPosition);
+                this._callback(this._currentPosition, true);
             }
         }
     };

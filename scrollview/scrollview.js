@@ -40,7 +40,7 @@ function ScrollView(element, o) {
     }
 
     function eventPointerUp(e) {
-        mView.setPosition(mView.scrollPosition - (mLastPointerCoordinate - e[mCoordProp]));
+        mView.setPosition(mView.scrollPosition - (mLastPointerCoordinate - e[mCoordProp]), true);
         mAnimator.tweakIfNeeded(mView.scrollPosition, mView.setPosition);
     }
 
