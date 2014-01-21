@@ -10,6 +10,12 @@ function ScrollBar(wrappable, className) {
         mPXStr = "px";
 
     function updateBar() {
+        if(Math.min(0, -wrappable.getMaxPosition()) === 0){
+            mBar.style.opacity = 0;
+        } else {
+            mBar.style.opacity = 1;
+        }
+
         mBar.style.height = mContainer.offsetHeight * (mContainer.offsetHeight / (wrappable.getMaxPosition() + mContainer.offsetHeight)) + mPXStr;
         mHeight = mContainer.offsetHeight - mBar.offsetHeight;
     }

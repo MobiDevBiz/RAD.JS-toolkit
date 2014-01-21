@@ -44,7 +44,11 @@
             width: 100%;
         }
 
-        .text {
+        .item-content {
+            position:relative;
+            max-height: 110px;
+            overflow: hidden;
+
             padding: 10px;
 
             height: 100%;
@@ -56,7 +60,7 @@
 
             font-family: Helvetica;
 
-            color: #464;
+            color: #f8ff9a;
 
             border-bottom: 1px solid #999;
 
@@ -68,15 +72,29 @@
             user-select: none;
         }
 
-        .text:after {
+        .item-content:after {
             content: "";
             clear: both;
             display: block;
         }
 
+        .text-content{
+            display: block;
+            display: -webkit-box;
+            /*max-width: 400px;*/
+            height: 80px; /* Fallback for non-webkit */
+            margin: 0 auto;
+            font-size: 16px;
+            line-height: 16px;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
         .position {
             position: absolute;
-            padding: 5px;
+            padding: 10px;
             bottom: 0;
             right: 0;
 
@@ -146,6 +164,14 @@
     <div class="list-view"></div>
 </div>
 <script type="text/javascript">
+
+    var lorem = [
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. In luctus porttitor urna nec fermentum. Fusce non ligula elementum, euismod dolor in, blandit metus. Mauris sodales enim a urna fermentum, a facilisis metus volutpat. Aliquam non facilisis dui. Vestibulum venenatis quis massa in feugiat.' ,
+        'Nam interdum pellentesque metus, sit amet auctor neque ornare quis. Maecenas ut turpis sed dolor pellentesque tristique pulvinar ut ipsum. In vestibulum ullamcorper pellentesque. Vestibulum vitae dui vitae lacus ultricies pharetra id vitae lacus.',
+        'Sed sit amet velit elementum, lacinia dolor ut, sodales mi. Morbi congue ipsum vel posuere accumsan. Proin convallis, tortor a tempor porttitor, tortor eros blandit justo, ut ultrices arcu augue quis nibh.',
+        'Nulla tempor semper pharetra. Aliquam eleifend pretium tempus. Donec nec nibh euismod, tempus risus non, ultrices orci.',
+        'Proin ac adipiscing felis. Aenean accumsan ultrices diam nec faucibus. Sed ornare ante in libero ultricies viverra bibendum et nunc.'
+    ];
     // =================================== first list ========================================
     var listContainer, listView, gestureAdapter, adapter;
     function ListViewAdapter(count) {
@@ -155,7 +181,7 @@
             return count;
         };
 
-        adapter.getElement = function (position, convertElement, handler) {
+        adapter.getElement = function (index, convertElement, handler) {
             //create new element
             if (!convertElement) {
 
@@ -163,30 +189,21 @@
                 convertElement.className = 'v-item';
 
                 //setup content
-                convertElement.innerHTML = '<div class="text"><img class="img" src="http://lorempixel.com/80/80/?' + +(window.performance.now() + Math.random()) + '" alt="img"/>' +
-                        '<span class="position">' + position + '</span>Lorem ipsum dolor sit amet,' +
-                        ' consectetur adipiscing elit. In libero lacus, feugiat et elementum euismod, tincidunt nec leo.' +
-                        ' Nunc est mauris, mollis id porta ac, egestas eu nulla. Donec id ante vel purus eleifend vestibulum.' +
-                        ' Maecenas id lacinia lacus.</div>';
+                convertElement.innerHTML = '<div class="item-content"><img class="img" src="" alt="img"/><span class="text-content"></span><span class="position"></span></div>';
 
                 //setup handlers
+                handler.text = convertElement.querySelector('.text-content');
                 handler.pos = convertElement.querySelector('.position');
                 handler.img = convertElement.querySelector('.img');
                 handler.style = convertElement.style;
-
-                handler.img.style.opacity = 0;
-                handler.img.onload = function () {
-                    this.style.opacity = 1;
-                };
-
-            } else {
-                // convert already existing item
-                handler.pos.textContent = position;
-                handler.img.style.opacity = 0;
-                handler.img.src = 'http://lorempixel.com/80/80/?' + (window.performance.now() + Math.random());
             }
 
-            if (position % 2 > 0) {
+            // setup content
+            handler.img.src = 'assets/img_' + index % 10 + '.jpeg';
+            handler.pos.textContent = index;
+            handler.text.textContent = lorem[index % 5];
+
+            if (index % 2 > 0) {
                 handler.style.backgroundColor = '#333';
             } else {
                 handler.style.backgroundColor = '#000';
