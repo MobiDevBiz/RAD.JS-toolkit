@@ -23,7 +23,8 @@ function ListView(element, adapter, o) {
         mLastAdapterIndex = 0, // last visible item index in list
         mFirstAdapterIndex = -1, // first visible item index in list
 
-        mInvisibleCollectorTimeout;
+        mInvisibleCollectorTimeout,
+        POINTER_DOWN = 'pointerdown';
 
     function calculateItemSize() {
         var item, counts = adapter.getElementsCount(), box, wrapper;
@@ -65,6 +66,8 @@ function ListView(element, adapter, o) {
             width: 0,
             height: 0
         }
+        this.taskTimestamp = 0;
+        this.task = null;
     }
 
     function collectInvisibleItems() {
@@ -93,6 +96,32 @@ function ListView(element, adapter, o) {
         }, 100);
     }
 
+    function checkHandlersTasks() {
+        var i, helper, now = window.performance.now();
+        for (i = mVisibleHelpers.length - 1; i >= 0; i--) {
+            helper = mVisibleHelpers[i];
+            if ((helper.taskTimestamp !== 0) && (now - helper.taskTimestamp > UPDATE_DELAY)) {
+                helper.taskTimestamp = 0;
+                helper.task();
+                helper.task = null;
+            }
+        }
+    }
+
+    function clearHandlersTask(){
+        var i, helper;
+        for (i = mVisibleHelpers.length - 1; i >= 0; i--) {
+            helper = mVisibleHelpers[i];
+            helper.taskTimestamp = 0;
+            helper.task = null;
+            if (helper.index < adapter.getElementsCount()) {
+                var item = adapter.getElement(helper.index, helper.item, helper.handler);
+                helper.wrapper.appendChild(item);
+                helper.item = item;
+            }
+        }
+    }
+
     function insertItemToWrapper(helper) {
         var index = helper.index, wrapper = helper.wrapper, handler = helper.handler;
 
@@ -101,12 +130,15 @@ function ListView(element, adapter, o) {
         helper.wrapper.style[mTransformName] = mTransitionArray.join("");
         helper.wrapper.setAttribute('data-item', helper.index);
 
-        // setup item content
-        if (index < adapter.getElementsCount()) {
-            var item = adapter.getElement(index, helper.item, handler);
-            wrapper.appendChild(item);
-            helper.item = item;
-        }
+        // setup task for insert item content
+        helper.task = function(){
+            if (index < adapter.getElementsCount()) {
+                var item = adapter.getElement(index, helper.item, handler);
+                wrapper.appendChild(item);
+                helper.item = item;
+            }
+        };
+        helper.taskTimestamp = window.performance.now();
     }
 
     // fill bottom list with items from adapter
@@ -301,6 +333,7 @@ function ListView(element, adapter, o) {
 
         // refresh scroll position
         mView.setPosition(mView.scrollPosition, true);
+        clearHandlersTask();
     };
 
     // override "setPosition" method
@@ -314,15 +347,27 @@ function ListView(element, adapter, o) {
 
         // layout items if delta time between last update and now more than 1000ms/needUpdateFPS
         mTmpVariable = window.performance.now();
-        if ((mTmpVariable - mLastLayoutTimestamp > UPDATE_DELAY) || force) {
+        if ((mTmpVariable - mLastLayoutTimestamp > 1000/30) || force) {
             layoutItems(position);
+            checkHandlersTasks();
             mLastLayoutTimestamp = mTmpVariable;
         }
 
         // post task to collect unnecessary invisible items
         mInvisibleCollectorTimeout = setTimeout(collectInvisibleItems, 1000);
     };
-    // -----------------------------------------------------------------
+
+    // override "handleEvent"
+    mFnHandlers.handleEvent = mView.handleEvent;
+    mView.handleEvent = function (e) {
+        mFnHandlers.handleEvent.apply(mView, arguments);
+        if (e.type === POINTER_DOWN) {
+            layoutItems(mView.scrollPosition);
+            clearHandlersTask();
+        }
+    };
+
+// -----------------------------------------------------------------
 
     // prepare first start
     mView.refresh();
