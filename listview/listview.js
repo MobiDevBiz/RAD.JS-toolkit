@@ -65,7 +65,7 @@ function ListView(element, adapter, o) {
         this.handler = {
             width: 0,
             height: 0
-        }
+        };
         this.taskTimestamp = 0;
         this.task = null;
     }
@@ -347,7 +347,7 @@ function ListView(element, adapter, o) {
 
         // layout items if delta time between last update and now more than 1000ms/needUpdateFPS
         mTmpVariable = window.performance.now();
-        if ((mTmpVariable - mLastLayoutTimestamp > 1000/30) || force) {
+        if ((mTmpVariable - mLastLayoutTimestamp > UPDATE_DELAY) || force) {
             layoutItems(position);
             checkHandlersTasks();
             mLastLayoutTimestamp = mTmpVariable;
