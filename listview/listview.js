@@ -67,7 +67,6 @@ function ListView(element, adapter, o) {
             height: 0
         };
         this.taskTimestamp = 0;
-        this.task = null;
     }
 
     function collectInvisibleItems() {
@@ -96,48 +95,28 @@ function ListView(element, adapter, o) {
         }, 100);
     }
 
-    function checkHandlersTasks() {
+    function checkHandlersTasks(force) {
         var i, helper, now = window.performance.now();
         for (i = mVisibleHelpers.length - 1; i >= 0; i--) {
             helper = mVisibleHelpers[i];
-            if ((helper.taskTimestamp !== 0) && (now - helper.taskTimestamp > UPDATE_DELAY)) {
+            if ((helper.taskTimestamp !== 0) && ((now - helper.taskTimestamp > UPDATE_DELAY) || force)) {
+                if (helper.index < adapter.getElementsCount()) {
+                    var item = adapter.getElement(helper.index, helper.item, helper.handler);
+                    helper.wrapper.appendChild(item);
+                    helper.item = item;
+                }
                 helper.taskTimestamp = 0;
-                helper.task();
-                helper.task = null;
             }
         }
     }
 
-    function clearHandlersTask(){
-        var i, helper;
-        for (i = mVisibleHelpers.length - 1; i >= 0; i--) {
-            helper = mVisibleHelpers[i];
-            helper.taskTimestamp = 0;
-            helper.task = null;
-            if (helper.index < adapter.getElementsCount()) {
-                var item = adapter.getElement(helper.index, helper.item, helper.handler);
-                helper.wrapper.appendChild(item);
-                helper.item = item;
-            }
-        }
-    }
-
-    function insertItemToWrapper(helper) {
-        var index = helper.index, wrapper = helper.wrapper, handler = helper.handler;
-
+    function prepareItemAndWrapper(helper) {
         // setup wrapper position
         mTransitionArray[1] = helper.position;
         helper.wrapper.style[mTransformName] = mTransitionArray.join("");
         helper.wrapper.setAttribute('data-item', helper.index);
 
         // setup task for insert item content
-        helper.task = function(){
-            if (index < adapter.getElementsCount()) {
-                var item = adapter.getElement(index, helper.item, handler);
-                wrapper.appendChild(item);
-                helper.item = item;
-            }
-        };
         helper.taskTimestamp = window.performance.now();
     }
 
@@ -158,7 +137,7 @@ function ListView(element, adapter, o) {
             } else {
                 clearTimeout(helper.timeout);
             }
-            helper.timeout = insertItemToWrapper(helper);
+            helper.timeout = prepareItemAndWrapper(helper);
 
             itemIndex--;
             mFirstAdapterIndex = itemIndex;
@@ -187,7 +166,7 @@ function ListView(element, adapter, o) {
             } else {
                 clearTimeout(helper.timeout);
             }
-            helper.timeout = insertItemToWrapper(helper);
+            helper.timeout = prepareItemAndWrapper(helper);
             mVisibleHelpers.push(helper);
         }
         mLastAdapterIndex = itemIndex;
@@ -333,7 +312,7 @@ function ListView(element, adapter, o) {
 
         // refresh scroll position
         mView.setPosition(mView.scrollPosition, true);
-        clearHandlersTask();
+        checkHandlersTasks(true);
     };
 
     // override "setPosition" method
@@ -363,7 +342,7 @@ function ListView(element, adapter, o) {
         mFnHandlers.handleEvent.apply(mView, arguments);
         if (e.type === POINTER_DOWN) {
             layoutItems(mView.scrollPosition);
-            clearHandlersTask();
+            checkHandlersTasks(true);
         }
     };
 
