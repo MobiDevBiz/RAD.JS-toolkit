@@ -24,7 +24,15 @@ function ListView(element, adapter, o) {
         mFirstAdapterIndex = -1, // first visible item index in list
 
         mInvisibleCollectorTimeout,
-        POINTER_DOWN = 'pointerdown';
+
+        mItemListener,
+        mIsMoving = false,
+
+        STRINGS = {
+            pointerdown: 'pointerdown',
+            pointermove: 'pointermove',
+            pointerup: 'pointerup'
+        };
 
     function calculateItemSize() {
         var item, counts = adapter.getElementsCount(), box, wrapper;
@@ -57,6 +65,10 @@ function ListView(element, adapter, o) {
         element.style.webkitFontSmoothing = 'antialiased';
         element.className = mWrapperClass;
 
+        //setup listener
+        if (mItemListener)
+            element.addEventListener(o.eventListener.type, mItemListener, o.eventListener.useCapture);
+
         this.wrapper = element;
         this.item = null;
         this.position = null;
@@ -75,6 +87,10 @@ function ListView(element, adapter, o) {
 
             // remove from DOM
             parent.removeChild(helper.wrapper);
+
+            //remove listener
+            if (mItemListener)
+                helper.wrapper.removeEventListener(o.eventListener.type, mItemListener);
 
             // release helper attributes
             for (key in helper) {
@@ -239,6 +255,22 @@ function ListView(element, adapter, o) {
 
     mView = new ScrollView(element, o);
 
+    if (o && o.eventListener) {
+        if (typeof o.eventListener.listener === 'object') {
+            mItemListener = function (e) {
+                if ((e.type === o.eventListener.type) && !mIsMoving) {
+                    o.eventListener.listener.handleEvent(e);
+                }
+            };
+        } else {
+            mItemListener = function (e) {
+                if ((e.type === o.eventListener.type) && !mIsMoving){
+                    o.eventListener.listener(e);
+                }
+            };
+        }
+    }
+
     // ----------------- decorate scroll view methods -------------------
     // override inner method for "refresh"/"reflow"
     mView._calculateMaxScroll = function () {
@@ -340,9 +372,16 @@ function ListView(element, adapter, o) {
     mFnHandlers.handleEvent = mView.handleEvent;
     mView.handleEvent = function (e) {
         mFnHandlers.handleEvent.apply(mView, arguments);
-        if (e.type === POINTER_DOWN) {
-            layoutItems(mView.scrollPosition);
-            checkHandlersTasks(true);
+
+        switch (e.type) {
+            case STRINGS.pointerdown:
+                layoutItems(mView.scrollPosition);
+                checkHandlersTasks(true);
+                mIsMoving = false;
+                break;
+            case STRINGS.pointermove:
+                mIsMoving = true;
+                break;
         }
     };
 

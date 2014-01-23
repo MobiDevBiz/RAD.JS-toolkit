@@ -220,7 +220,14 @@
     listView = new ScrollBar(new ListView(listContainer, adapter, {
         direction: 'vertical',
         bounds: true,
-        itemClass: 'item'
+        itemClass: 'item',
+        eventListener: {
+            type: 'click',
+            listener: function (e) {
+                console.log(e);
+            },
+            useCapture: false
+        }
     }), 'scrollbar');
     gestureAdapter = new GestureAdapter(listContainer, listView);
     listContainer.listView = listView;
