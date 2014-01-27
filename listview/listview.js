@@ -27,6 +27,7 @@ function ListView(element, adapter, o) {
 
         mItemListener,
         mIsMoving = false,
+        mStartPoint,
 
         STRINGS = {
             pointerdown: 'pointerdown',
@@ -378,9 +379,12 @@ function ListView(element, adapter, o) {
                 layoutItems(mView.scrollPosition);
                 checkHandlersTasks(true);
                 mIsMoving = false;
+                mStartPoint = (mDirection === STRINGS.vertical) ? e.screenY : e.screenX;
                 break;
             case STRINGS.pointermove:
-                mIsMoving = true;
+                if (((mDirection === STRINGS.vertical) ? e.screenY : e.screenX) - mStartPoint > 10) {
+                    mIsMoving = true;
+                }
                 break;
         }
     };
