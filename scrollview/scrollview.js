@@ -100,7 +100,8 @@ function ScrollView(element, o) {
     mView.handleEvent = function (e) {
         switch (e.type) {
         case STRINGS.fling:
-            eventFling(e);
+            if (mAnimator.inBounds(mView.scrollPosition))
+                eventFling(e);
             break;
         case STRINGS.pointerdown:
             eventPointerDown(e);

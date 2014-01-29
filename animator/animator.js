@@ -311,6 +311,10 @@ Animator.prototype = (function () {
         this.margin = margin || 0;
     };
 
+    proto.inBounds = function (position) {
+        return (position >= this.minPosition) && (position <= this.maxPosition);
+    };
+
     proto.isStopped = function () {
         return !this.isAnimating;
     };
