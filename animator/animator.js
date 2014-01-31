@@ -206,7 +206,7 @@ Animator.prototype = (function () {
 
     proto.animate = function (startPosition, endPosition, duration, callback, easing) {
         var startTimestamp, firstIteration = true, tmpVariable, tmpTime, self = this, easingFunction,
-            lastIteraction = false, state = this.isTweaking ? STRINGS.tweak : STRINGS.animation;
+            lastIteraction = false, state = this.isTweaking ? STRINGS.tweak : STRINGS.animation, tmpPosition;
 
         /* Prevent scrolling to the Y point if already there */
         if (startPosition === endPosition) {
@@ -266,8 +266,18 @@ Animator.prototype = (function () {
                     }
                 }
             } else {
-                self._currentPosition = self.checkBounds(self._currentPosition);
+                tmpPosition = self.checkBounds(self._currentPosition);
+                if (tmpPosition !== self._currentPosition) {
+                    lastIteraction = true;
+                    self.isTweaking = false;
+                    self.isAnimating = false;
+                    tmpPosition = Math.round(tmpPosition);
+
+                    state = STRINGS.stop;
+                }
+                self._currentPosition = tmpPosition;
             }
+
 
             // setup new position
             callback(self._currentPosition, lastIteraction, state);
