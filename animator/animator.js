@@ -270,7 +270,7 @@ Animator.prototype = (function () {
     proto.FRICTION = 0.000025;
 
     proto.startFling = function (startPosition, velocity, callback) {
-        var duration, shift, sign = velocity && velocity / Math.abs(velocity), friction = this.FRICTION;
+        var duration, shift, newShift, flag = false, sign = velocity && velocity / Math.abs(velocity), friction = this.FRICTION;
 
         if (!this.DPI && !this._keepAbsoluteMetrics) {
             calculateScreenDPI();
@@ -283,6 +283,22 @@ Animator.prototype = (function () {
 
         duration = Math.abs(velocity) / friction;
         shift = sign * velocity * velocity / friction;
+        if (this._bounds) {
+            if (startPosition + shift < this.minPosition - this.margin) {
+                newShift = this.minPosition - this.margin/2 - startPosition;
+                flag = true;
+            }
+
+            if (startPosition + shift > this.maxPosition + this.margin) {
+                newShift = this.maxPosition + this.margin/2 - startPosition;
+                flag = true;
+            }
+            if (flag) {
+                duration = duration * newShift / shift;
+                shift = newShift;
+            }
+        }
+
         this.animate(startPosition, startPosition + shift, duration, callback);
     };
 

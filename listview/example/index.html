@@ -157,8 +157,7 @@
 <div class="wrapper">
     <div class="interface">
         <button class="button" onclick="setupListCount()">Apply</button>
-        <div style="margin: 0 75px 0 0;"><input class="range" type="number" min="0" max="5000" value="0" oninput="showVal(this.value)"
-               onchange="showVal(this.value)"/></div>
+        <div style="margin: 0 75px 0 0;"><input class="range" type="number" min="0" max="5000" value="0" onchange="showVal(this.value)"/></div>
     </div>
     <div class="list-view"></div>
 </div>
@@ -238,10 +237,9 @@
     /////////////////////////////////////////////////////////////////////////////////////////
 
 
-    var count = document.querySelector('.count'), value = 0;
+    var value = 0;
     function showVal(val) {
         value = val;
-        count.innerHTML = val;
     }
 
     function setupListCount() {
