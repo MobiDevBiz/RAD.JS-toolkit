@@ -11,6 +11,7 @@ function ListView(element, adapter, o) {
         mItemHeight, // item height
 
         mTransformName, // css transformation name with vendor prefix
+        mTransitionName,
         mTransitionArray = [], // tmp array for constructing transformation value
 
         mVisibleHelpers = [], // visible items
@@ -121,6 +122,9 @@ function ListView(element, adapter, o) {
                     var item = adapter.getElement(helper.index, helper.item, helper.handler);
                     helper.wrapper.appendChild(item);
                     helper.item = item;
+
+                    helper.item.style[mTransitionName] = 'opacity 200ms ease-in';
+                    helper.item.style.opacity = 1;
                 }
                 helper.taskTimestamp = 0;
             }
@@ -133,6 +137,11 @@ function ListView(element, adapter, o) {
         helper.wrapper.style[mTransformName] = mTransitionArray.join("");
         helper.wrapper.setAttribute('data-item', helper.index);
 
+        if (helper.item) {
+            helper.item.style[mTransitionName] = 'none';
+            helper.item.style.opacity = 0;
+        }
+
         // setup task for insert item content
         helper.taskTimestamp = window.performance.now();
     }
@@ -140,7 +149,7 @@ function ListView(element, adapter, o) {
     // fill bottom list with items from adapter
     function fillFromTop(containerPosition) {
         var wrapper, helper, itemIndex = mFirstAdapterIndex;
-        while (itemIndex >= 0 && (itemIndex + 1) * mItemSize > -containerPosition) {
+        while (itemIndex >= 0 && (itemIndex + 2) * mItemSize > -containerPosition) {
             helper = mInvisibleHelpers.pop() || new CreateHelper();
             helper.handler.width = mItemWidth;
             helper.handler.height = mItemHeight;
@@ -168,7 +177,7 @@ function ListView(element, adapter, o) {
         var itemsCount = adapter.getElementsCount(), helper, wrapper, itemIndex = mLastAdapterIndex,
             lastBottom = mLastAdapterIndex * mItemSize + containerPosition;
 
-        for (itemIndex; itemIndex < itemsCount && lastBottom < mView._ParentSize; itemIndex++) {
+        for (itemIndex; itemIndex < itemsCount && lastBottom < mView._ParentSize + mItemSize; itemIndex++) {
             lastBottom += mItemSize;
             helper = mInvisibleHelpers.pop() || new CreateHelper();
             helper.handler.width = mItemWidth;
@@ -240,6 +249,7 @@ function ListView(element, adapter, o) {
 
     //======================== construction part ========================
     mTransformName = addVendorPrefix("transform");
+    mTransitionName = addVendorPrefix("transition");
     if (mDirection === "vertical") {
         mTransitionArray[0] = "translate3d(0, ";
         mTransitionArray[2] = "px, 0) scale(1)";
