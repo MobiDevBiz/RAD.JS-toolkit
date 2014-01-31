@@ -5,6 +5,8 @@ function ListView(element, adapter, o) {
 
         mDirection = (o && o.direction) ? o.direction : "vertical", // scrolling direction
         mWrapperClass = o ? o.itemClass : '', // css class for item wrappers
+        mUseOpacity = !!(o ? o.useOpacity : false),
+        mStealthCount = (o &&  typeof o.stealthCount === 'number') ? Math.abs(o.stealthCount): 0,
 
         mItemSize = 0, // item size along scroll direction
         mItemWidth, // item width
@@ -123,8 +125,10 @@ function ListView(element, adapter, o) {
                     helper.wrapper.appendChild(item);
                     helper.item = item;
 
-                    helper.item.style[mTransitionName] = 'opacity 200ms ease-in';
-                    helper.item.style.opacity = 1;
+                    if (mUseOpacity) {
+                        helper.item.style[mTransitionName] = 'opacity 150ms ease-in';
+                        helper.item.style.opacity = 1;
+                    }
                 }
                 helper.taskTimestamp = 0;
             }
@@ -137,7 +141,7 @@ function ListView(element, adapter, o) {
         helper.wrapper.style[mTransformName] = mTransitionArray.join("");
         helper.wrapper.setAttribute('data-item', helper.index);
 
-        if (helper.item) {
+        if (mUseOpacity && helper.item) {
             helper.item.style[mTransitionName] = 'none';
             helper.item.style.opacity = 0;
         }
@@ -149,7 +153,7 @@ function ListView(element, adapter, o) {
     // fill bottom list with items from adapter
     function fillFromTop(containerPosition) {
         var wrapper, helper, itemIndex = mFirstAdapterIndex;
-        while (itemIndex >= 0 && (itemIndex + 2) * mItemSize > -containerPosition) {
+        while (itemIndex >= 0 && (itemIndex + 1 + mStealthCount) * mItemSize > -containerPosition) {
             helper = mInvisibleHelpers.pop() || new CreateHelper();
             helper.handler.width = mItemWidth;
             helper.handler.height = mItemHeight;
@@ -177,7 +181,7 @@ function ListView(element, adapter, o) {
         var itemsCount = adapter.getElementsCount(), helper, wrapper, itemIndex = mLastAdapterIndex,
             lastBottom = mLastAdapterIndex * mItemSize + containerPosition;
 
-        for (itemIndex; itemIndex < itemsCount && lastBottom < mView._ParentSize + mItemSize; itemIndex++) {
+        for (itemIndex; itemIndex < itemsCount && lastBottom < mView._ParentSize + mStealthCount * mItemSize; itemIndex++) {
             lastBottom += mItemSize;
             helper = mInvisibleHelpers.pop() || new CreateHelper();
             helper.handler.width = mItemWidth;
@@ -219,8 +223,8 @@ function ListView(element, adapter, o) {
 
         for (i = mVisibleHelpers.length - 1; i >= 0; i--) {
             helper = mVisibleHelpers[i];
-            fromDown = helper.position > mView._ParentSize - containerPosition;
-            fromUp = helper.position + mItemSize * 2 < -containerPosition;
+            fromDown = helper.position > mView._ParentSize - containerPosition + mStealthCount * mItemSize;
+            fromUp = helper.position + mItemSize * (1 + mStealthCount) < -containerPosition;
 
             if (fromUp || fromDown) {
                 helper.timeout = setInvisible(helper);
@@ -398,8 +402,7 @@ function ListView(element, adapter, o) {
                 break;
         }
     };
-
-// -----------------------------------------------------------------
+    // -----------------------------------------------------------------
 
     // prepare first start
     mView.refresh();

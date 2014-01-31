@@ -219,6 +219,9 @@
     listView = new ScrollBar(new ListView(listContainer, adapter, {
         direction: 'vertical',
         bounds: true,
+        stealthCount: 2,
+        useOpacity: true,
+        requiredFPS: 40,
         itemClass: 'item',
         eventListener: {
             type: 'click',
