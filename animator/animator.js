@@ -78,7 +78,12 @@ function Animator(o) {
 }
 
 Animator.prototype = (function () {
-    var proto = {};
+    var proto = {},
+        STRINGS = {
+            animation: "animation",
+            stop: "stop",
+            tweak: "tweak"
+        };
 
     /*
      * Easing Functions - inspired from http://gizma.com/easing/
@@ -200,7 +205,8 @@ Animator.prototype = (function () {
     // ====================================================================================================
 
     proto.animate = function (startPosition, endPosition, duration, callback, easing) {
-        var startTimestamp, firstIteration = true, tmpVariable, tmpTime, self = this, easingFunction, lastIteraction = false;
+        var startTimestamp, firstIteration = true, tmpVariable, tmpTime, self = this, easingFunction,
+            lastIteraction = false, state = this.isTweaking ? STRINGS.tweak : STRINGS.animation;
 
         /* Prevent scrolling to the Y point if already there */
         if (startPosition === endPosition) {
@@ -234,6 +240,8 @@ Animator.prototype = (function () {
                 self.isTweaking = false;
                 self.isAnimating = false;
                 self._currentPosition = Math.round(self._currentPosition);
+
+                state = STRINGS.stop;
             }
 
             // check bounds behavior
@@ -253,6 +261,7 @@ Animator.prototype = (function () {
                             self.stop();
                             self.isTweaking = true;
                             self.animate(self._currentPosition, self._currentPosition - delta, Math.min(Math.abs(delta) * 2, 350), self._callback, self._boundsEasing || 'easeOutQuad');
+                            state = STRINGS.tweak;
                         }
                     }
                 }
@@ -261,7 +270,7 @@ Animator.prototype = (function () {
             }
 
             // setup new position
-            callback(self._currentPosition, lastIteraction);
+            callback(self._currentPosition, lastIteraction, state);
         }
 
         window.requestAnimationFrame(animationStep, null);
@@ -342,7 +351,7 @@ Animator.prototype = (function () {
 
             if (typeof this._callback === "function") {
                 this._currentPosition = Math.round(this._currentPosition);
-                this._callback(this._currentPosition, true);
+                this._callback(this._currentPosition, true, STRINGS.stop);
             }
         }
     };

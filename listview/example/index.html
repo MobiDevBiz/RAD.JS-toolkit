@@ -222,6 +222,9 @@
         useOpacity: true,
         requiredFPS: 40,
         itemClass: 'item',
+        onScroll: function(position, type){
+            console.log(position, type);
+        },
         eventListener: {
             type: 'click',
             listener: function (e) {

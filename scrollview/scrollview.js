@@ -5,6 +5,7 @@ function ScrollView(element, o) {
         STRINGS = {
             vertical: 'vertical',
             fling: 'fling',
+            move: 'move',
             pointerdown: 'pointerdown',
             pointermove: 'pointermove',
             pointerup: 'pointerup'
@@ -51,12 +52,6 @@ function ScrollView(element, o) {
 
     mView._calculateMaxScroll = function () {
         mView._MaxScroll = mScrollingWrapper[mParentProp] - mView._ParentSize;
-    };
-
-    mView.setPosition = function (position, force) {
-        mView.scrollPosition = force ? position : mAnimator.checkBounds(position);
-        mTransitionArray[1] = mView.scrollPosition;
-        mScrollingWrapper.style[mTransformName] = mTransitionArray.join("");
     };
 
     mView.scroll = function (shift, duration) {
@@ -137,6 +132,21 @@ function ScrollView(element, o) {
 
     })(mDirection === STRINGS.vertical);
 
+    mView.setPosition = (function (enableListener) {
+        if (enableListener) {
+            return function (position, force, typeOfMotion) {
+                mView.scrollPosition = force ? position : mAnimator.checkBounds(position);
+                mTransitionArray[1] = mView.scrollPosition;
+                mScrollingWrapper.style[mTransformName] = mTransitionArray.join("");
+                o.onScroll(mView.scrollPosition, typeOfMotion || STRINGS.move);
+            };
+        }
+        return function (position, force) {
+            mView.scrollPosition = force ? position : mAnimator.checkBounds(position);
+            mTransitionArray[1] = mView.scrollPosition;
+            mScrollingWrapper.style[mTransformName] = mTransitionArray.join("");
+        };
+    })(o && typeof o.onScroll === 'function');
 
     if (mDirection === STRINGS.vertical) {
         mTransitionArray[0] = "translate3d(0, ";
@@ -150,7 +160,7 @@ function ScrollView(element, o) {
     mTransformName = addVendorPrefix("transform");
 
     var validPosition = ['fixed', 'relative', 'absolute'], tmp = validPosition.indexOf(window.getComputedStyle(element, null).position);
-    element.style.position = (tmp === -1)? 'relative' : validPosition[tmp];
+    element.style.position = (tmp === -1) ? 'relative' : validPosition[tmp];
     element.style.overflow = 'hidden';
 
     mScrollingWrapper = element.firstElementChild;
