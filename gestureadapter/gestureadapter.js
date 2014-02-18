@@ -84,12 +84,24 @@ GestureAdapter.prototype = (function () {
         extractCoord = (function () {
             if (touch)
                 return function (e, cntx) {
-                    var touchEvent;
+                    var touchEvent, i, l;
 
                     if (e.type === STRINGS.touchstart) {
+                        if (e.touches.length > 1){
+                            return;
+                        }
                         touchEvent = e.touches[0];
+                        cntx.touchID = e.touches[0].identifier;
                     } else {
-                        touchEvent = e.changedTouches[0];
+                        for (i = 0, l = e.changedTouches.length; i < l; i ++) {
+                            touchEvent = e.changedTouches[i];
+                            if (touchEvent.identifier === cntx.touchID) {
+                                break;
+                            }
+                        }
+                        if (touchEvent.identifier !== cntx.touchID){
+                            return;
+                        }
                     }
 
                     cntx._tmpCoords.screenX = touchEvent.screenX;
@@ -111,6 +123,10 @@ GestureAdapter.prototype = (function () {
     function saveLastPoint(e, cntx) {
         if (e.timeStamp - cntx.preLastMove.timeStamp > 10) {
             var coords = extractCoord(e, cntx);
+            if (!coords) {
+                return;
+            }
+
             cntx.lastMove.screenX = cntx.preLastMove.screenX;
             cntx.lastMove.screenY = cntx.preLastMove.screenY;
             cntx.lastMove.timeStamp = cntx.preLastMove.timeStamp;
@@ -130,6 +146,9 @@ GestureAdapter.prototype = (function () {
 
     function fireEvent(type, e, cntx) {
         var coords = extractCoord(e, cntx), event = eventPool.get();
+        if (!coords) {
+            return;
+        }
         event.type = type;
         event.clientX = coords.clientX;
         event.clientY = coords.clientY;
@@ -157,6 +176,9 @@ GestureAdapter.prototype = (function () {
         var coord = extractCoord(e, cntx),
             flingEvent;
 
+        if (!coord) {
+            return;
+        }
         if ((Math.abs(distance(cntx.lastMove.screenX, cntx.lastMove.screenY, coord.screenX, coord.screenY) / (e.timeStamp - cntx.lastMove.timeStamp)) * 100) >> 0 > 0) {
             flingEvent = flingPool.get();
             flingEvent.type = STRINGS.fling;
@@ -185,6 +207,9 @@ GestureAdapter.prototype = (function () {
 
     function onTouchStart(e, cntx) {
         var coords = extractCoord(e, cntx);
+        if (!coords) {
+            return;
+        }
         cntx.startX = coords.screenX;
         cntx.startY = coords.screenY;
         cntx.startClientX = coords.clientX;
@@ -206,6 +231,9 @@ GestureAdapter.prototype = (function () {
 
     function onTouchMove(e, cntx) {
         var coords = extractCoord(e, cntx);
+        if (!coords) {
+            return;
+        }
 
         if (cntx.isDown) {
             saveLastPoint(e, cntx);
