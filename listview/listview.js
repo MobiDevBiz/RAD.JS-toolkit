@@ -337,9 +337,6 @@ function ListView(element, adapter, o) {
                 helper.position = position;
                 helper.handler.width = mItemWidth;
                 helper.handler.height = mItemHeight;
-
-                //update items content
-                adapter.getElement(mVisibleHelpers[i].index, helper.item, mVisibleHelpers[i].handler);
             }
 
             // reflow mInvisibleItems items
@@ -352,6 +349,11 @@ function ListView(element, adapter, o) {
                 wrapper.style.height = mItemHeight + 'px';
                 wrapper.style.width = mItemWidth + 'px';
             }
+        }
+
+        for (i = mVisibleHelpers.length - 1; i >= 0; i -= 1) {
+            helper = mVisibleHelpers[i];
+            adapter.getElement(helper.index, helper.item, helper.handler);
         }
 
         // refresh max scroll position
